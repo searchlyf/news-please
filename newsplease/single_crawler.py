@@ -53,31 +53,8 @@ class SingleCrawler(object):
     shall_resume = False
     daemonize = False
 
-    @classmethod
-    def create_as_library(cls, url):
-        """
-        Creates a single crawler as in library mode. Crawling will start immediately.
-        :param url:
-        :return:
-        """
-        site = {"crawler": "Download", "url": url}
-        cfg_file_path = (
-            os.path.dirname(__file__)
-            + os.path.sep
-            + "config"
-            + os.path.sep
-            + "config_lib.cfg"
-        )
-        return cls(cfg_file_path, site, 0, False, False, True)
-
     def __init__(
-        self,
-        cfg_file_path,
-        json_file_path,
-        site_index,
-        shall_resume,
-        daemonize,
-        library_mode=False,
+        self, cfg_file_path, json_file_path, site_index, shall_resume, daemonize
     ):
         # set up logging before it's defined via the config file,
         # this will be overwritten and all other levels will be put out
@@ -102,16 +79,10 @@ class SingleCrawler(object):
 
         self.cfg_crawler = self.cfg.section("Crawler")
 
-        # load the URL-input-json-file or - if in library mode - take the json_file_path as the site information (
-        # kind of hacky..)
-        if not library_mode:
-            self.json = JsonConfig.get_instance()
-            self.json.setup(self.json_file_path)
-            sites = self.json.get_site_objects()
-            site = sites[self.site_number]
-        else:
-            sites = [json_file_path]
-            site = json_file_path
+        self.json = JsonConfig.get_instance()
+        self.json.setup(self.json_file_path)
+        sites = self.json.get_site_objects()
+        site = sites[self.site_number]
 
         if "ignore_regex" in site:
             ignore_regex = "(%s)|" % site["ignore_regex"]
@@ -141,7 +112,6 @@ class SingleCrawler(object):
             self.cfg.section("Files")["format_relative_path"],
             sites,
             crawler_class,
-            self.cfg.get_working_path(),
         )
 
         self.__scrapy_options = self.cfg.get_scrapy_options()
@@ -158,7 +128,7 @@ class SingleCrawler(object):
         # so that further jobs can be executed. it also needs to run in a thread since the reactor.run method seems
         # to not return. also, scrapy will attempt to start a new reactor, which fails with an exception, but
         # the code continues to run. we catch this excepion in the function 'start_process'.
-        if library_mode:
+        if False:
             start_new_thread(start_process, (self.process, False))
         else:
             self.process.start()
@@ -170,9 +140,6 @@ class SingleCrawler(object):
 
         :param object site: a site dict extracted from the json file
         """
-        working_path = self.cfg.get_working_path()
-        if not working_path.endswith("/"):
-            working_path += "/"
         jobdirname = self.__scrapy_options["JOBDIRNAME"]
         if not jobdirname.endswith("/"):
             jobdirname += "/"
@@ -180,7 +147,9 @@ class SingleCrawler(object):
         site_string = "".join(site["url"]) + self.crawler_name
         hashed = hashlib.md5(site_string.encode("utf-8"))
 
-        self.__scrapy_options["JOBDIR"] = working_path + jobdirname + hashed.hexdigest()
+        self.__scrapy_options["JOBDIR"] = (
+            "/mnt/d/data/news-please/" + jobdirname + hashed.hexdigest()
+        )
 
     def get_crawler(self, crawler, url):
         """

@@ -13,7 +13,6 @@ from .url_extractor import UrlExtractor
 re_time_exec = re.compile(r"%time_execution\(([^\)]+)\)")
 re_timestamp_exec = re.compile(r"%timestamp_execution")
 
-re_working_path = re.compile(r"%working_path")
 re_time_dl = re.compile(r"%time_download\(([^\)]+)\)")
 re_timstamp_dl = re.compile(r"%timestamp_download")
 re_domain = re.compile(r"%domain\(([^\)]+)\)")
@@ -43,10 +42,9 @@ class SavepathParser(object):
     cfg_savepath = None
     relative_to_path = None
     format_relative_path = None
-    working_path = None
 
     def __init__(
-        self, cfg_savepath, relative_to_path, format_relative_path, helper, working_path
+        self, cfg_savepath, relative_to_path, format_relative_path, helper
     ):
         self.helper = helper
 
@@ -69,7 +67,6 @@ class SavepathParser(object):
 
         self.format_relative_path = format_relative_path
 
-        self.working_path = working_path
 
     @staticmethod
     def time_replacer(match, timestamp):
@@ -119,9 +116,6 @@ class SavepathParser(object):
 
         if not savepath:
             savepath = self.cfg_savepath
-
-        # lambda is used for lazy evaluation
-        savepath = re.sub(re_working_path, lambda match: self.working_path, savepath)
 
         savepath = re.sub(
             re_time_dl,

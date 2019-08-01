@@ -685,9 +685,9 @@ class PandasStorage(ExtractedInformationStorage):
             "url",
         ]
 
-        working_path = self.cfg.section("Files")["working_path"]
         file_name = self.database["file_name"]
-        self.full_path = os.path.join(working_path, file_name, ".pickle")
+        data_path ="/mnt/d/data/news-please"
+        self.full_path = os.path.join(data_path, file_name, ".pickle")
 
         try:
             self.df = pd.read_pickle(self.full_path)

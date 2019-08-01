@@ -6,7 +6,6 @@ import signal
 import sys
 import threading
 import time
-from distutils.dir_util import copy_tree
 from subprocess import Popen
 
 import pymysql
@@ -37,8 +36,6 @@ class NewsPleaseLauncher(object):
 
     crawlers = []
     cfg = None
-    cfg_directory_path = None
-    cfg_file_path = None
     json_file_path = None
     shall_resume = False
     no_confirm = False
@@ -51,25 +48,21 @@ class NewsPleaseLauncher(object):
     mysql = None
     elasticsearch = None
     number_of_active_crawlers = 0
-    config_directory_default_path = "~/news-please-repo/config/"
+    config_directory_default_path = "~/freeman/news-please/newsplease/config/"
     config_file_default_name = "config.cfg"
-    library_mode = None
 
     __single_crawler = False
 
     def __init__(
         self,
-        cfg_directory_path,
         is_resume,
         is_reset_elasticsearch,
         is_reset_json,
         is_reset_mysql,
         is_no_confirm,
-        library_mode=False,
     ):
         """
         The constructor of the main class, thus the real entry point to the tool.
-        :param cfg_file_path:
         :param is_resume:
         :param is_reset_elasticsearch:
         :param is_reset_json:
@@ -80,13 +73,6 @@ class NewsPleaseLauncher(object):
         # other parameters
         self.shall_resume = is_resume
         self.no_confirm = is_no_confirm
-        self.library_mode = library_mode
-
-        # Sets an environmental variable called 'CColon', so scripts can import
-        # modules of this project in relation to this script's dir
-        # example: sitemap_crawler can import UrlExtractor via
-        #   from newsplease.helper_classderes.url_extractor import UrlExtractor
-        os.environ["CColon"] = os.path.abspath(os.path.dirname(__file__))
 
         # set stop handlers
         self.set_stop_handler()
@@ -94,24 +80,15 @@ class NewsPleaseLauncher(object):
         # threading
         self.thread_event = threading.Event()
 
-        # Get & set CFG and JSON locally.
-        if cfg_directory_path:
-            # if a path was given by the user
-            self.cfg_directory_path = self.get_expanded_path(cfg_directory_path)
-        else:
-            # if no path was given by the user, use default
-            self.cfg_directory_path = self.get_expanded_path(
-                self.config_directory_default_path
-            )
-        # init cfg path if empty
-        self.init_config_file_path_if_empty()
-        self.cfg_file_path = self.cfg_directory_path + self.config_file_default_name
-
+        self.cfg_directory_path = self.get_expanded_path(
+            self.config_directory_default_path
+        )
         # config
         self.cfg = CrawlerConfig.get_instance()
+        self.cfg_file_path = self.cfg_directory_path + self.config_file_default_name
         self.cfg.setup(self.cfg_file_path)
-        self.mysql = self.cfg.section("MySQL")
         self.elasticsearch = self.cfg.section("Elasticsearch")
+        self.mysql = self.cfg.section("MySQL")
 
         # perform reset if given as parameter
         if is_reset_mysql:
@@ -287,57 +264,13 @@ class NewsPleaseLauncher(object):
         self.thread_event.set()
         return True
 
-    def init_config_file_path_if_empty(self):
-        """
-        if the config file path does not exist, this function will initialize the path with a default
-        config file
-        :return
-        """
-
-        if os.path.exists(self.cfg_directory_path):
-            return
-
-        user_choice = "n"
-        if self.no_confirm:
-            user_choice = "y"
-        else:
-            sys.stdout.write(
-                "Config directory does not exist at '"
-                + os.path.abspath(self.cfg_directory_path)
-                + "'. "
-                + "Should a default configuration be created at this path? [Y/n] "
-            )
-            if sys.version_info[0] < 3:
-                user_choice = raw_input()
-            else:
-                user_choice = input()
-            user_choice = user_choice.lower().replace("yes", "y").replace("no", "n")
-
-        if not user_choice or user_choice == "":  # the default is yes
-            user_choice = "y"
-        if "y" not in user_choice and "n" not in user_choice:
-            sys.stderr.write("Wrong input, aborting.")
-            sys.exit(1)
-        if "n" in user_choice:
-            sys.stdout.write("Config file will not be created. Terminating.")
-            sys.exit(1)
-
-        # copy the default config file to the new path
-        copy_tree(
-            os.environ["CColon"] + os.path.sep + "config", self.cfg_directory_path
-        )
-        return
-
     def get_expanded_path(self, path):
         """
         expands a path that starts with an ~ to an absolute path
         :param path:
         :return:
         """
-        if path.startswith("~"):
-            return os.path.expanduser("~") + path[1:]
-        else:
-            return path
+        return os.path.expanduser("~") + path[1:] if path.startswith("~") else path
 
     def get_abs_file_path(
         self, rel_file_path, quit_on_error=None, check_relative_to_path=True
@@ -674,26 +607,13 @@ Cleanup files:
             self.graceful_stop = True
 
 
-def cli(
-    cfg_file_path,
-    resume,
-    reset_elasticsearch,
-    reset_mysql,
-    reset_json,
-    reset_all,
-    no_confirm,
-):
+def cli(resume, reset_elasticsearch, reset_mysql, reset_json, reset_all, no_confirm):
     if reset_all:
         reset_elasticsearch = True
         reset_json = True
         reset_mysql = True
 
-    if cfg_file_path and not cfg_file_path.endswith(os.path.sep):
-        cfg_file_path += os.path.sep
-
-    NewsPleaseLauncher(
-        cfg_file_path, resume, reset_elasticsearch, reset_json, reset_mysql, no_confirm
-    )
+    NewsPleaseLauncher(resume, reset_elasticsearch, reset_json, reset_mysql, no_confirm)
 
 
 def main():
@@ -701,7 +621,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="A generic news crawler and extractor."
     )
-    parser.add_argument("--cfg_file_path", help="path to the config file")
     parser.add_argument(
         "--resume", help="resume crawling from last process", action="store_true"
     )
@@ -720,13 +639,12 @@ def main():
     )
     args = parser.parse_args()
     cli(
-        args.cfg_file_path,
         args.resume,
         args.reset_elasticsearch,
         args.reset_mysql,
         args.reset_json,
         args.reset_all,
-        args.no_confirm,
+        args.no_confirm
     )
 
 

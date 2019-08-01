@@ -161,19 +161,6 @@ class CrawlerConfig(object):
             raise RuntimeError("No section set in option-getting")
         return self.__config[self.__current_section][option]
 
-    def get_working_path(self):
-        """
-        Gets the working path. If the path starts with a ~, this will be replaced by the current user's home path.
-        :return:
-        """
-        self.set_section("Files")
-        raw_path = self.option("working_path")
-        if raw_path.startswith("~"):
-            raw_path = os.path.expanduser("~") + raw_path[1:]
-
-        return raw_path
-
-
 class JsonConfig(object):
     """
     The actual class. First parameter: config-file.
