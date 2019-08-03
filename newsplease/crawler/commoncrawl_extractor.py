@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Provides functionality to crawl and extract news articles from a single WARC file from commoncrawl.org. Filter criteria, such as publish date
 and host list, can be defined. Currently, the WARC file will be downloaded to the path WORKINGDIR/cc_download_warc, if
@@ -10,13 +9,11 @@ import subprocess
 import sys
 import time
 
-from ago import human
 from dateutil import parser
-from hurry.filesize import size
 from six.moves import urllib
 from warcio.archiveiterator import ArchiveIterator
 
-from .. import NewsPlease
+from newsplease import NewsPlease
 
 __author__ = "Felix Hamborg"
 __copyright__ = "Copyright 2017"
@@ -175,12 +172,12 @@ class CommonCrawlExtractor:
 
         readsofar = blocknum * blocksize
         if totalsize > 0:
-            s = "\r%s / %s" % (size(readsofar), size(totalsize))
+            s = f"{readsofar} / {totalsize}"
             sys.stdout.write(s)
             if readsofar >= totalsize:  # near the end
                 sys.stderr.write("\r")
         else:  # total size is unknown
-            sys.stdout.write("\rread %s" % (size(readsofar)))
+            sys.stdout.write(f"read {readsofar}")
 
     def __download(self, url):
         """
@@ -274,9 +271,7 @@ class CommonCrawlExtractor:
                                 counter_article_total,
                             )
                             self.__logger.info(
-                                "extraction from current WARC file started %s; %f s/article",
-                                human(start_time),
-                                secs_per_article,
+                                f"extraction from current WARC file started {start_time};{secs_per_article} s/article"
                             )
                 except:
                     if self.__continue_after_error:

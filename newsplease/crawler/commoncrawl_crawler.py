@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Provides functionality to crawl and extract news articles from commoncrawl.org. Filter criteria, such as publish date
 and host list, can be defined. Currently, all WARC files will be downloaded to the path WORKINGDIR/cc_download_warc, if
@@ -12,8 +11,7 @@ from functools import partial
 from multiprocessing import Pool
 
 from dateutil import parser
-
-from ..crawler.commoncrawl_extractor import CommonCrawlExtractor
+from crawler.commoncrawl_extractor import CommonCrawlExtractor
 
 __author__ = "Felix Hamborg"
 __copyright__ = "Copyright 2017"

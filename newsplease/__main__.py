@@ -644,7 +644,7 @@ def main():
         args.reset_mysql,
         args.reset_json,
         args.reset_all,
-        args.no_confirm
+        args.no_confirm,
     )
 
 

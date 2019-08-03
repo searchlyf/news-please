@@ -43,9 +43,7 @@ class SavepathParser(object):
     relative_to_path = None
     format_relative_path = None
 
-    def __init__(
-        self, cfg_savepath, relative_to_path, format_relative_path, helper
-    ):
+    def __init__(self, cfg_savepath, relative_to_path, format_relative_path, helper):
         self.helper = helper
 
         # this part can be replaced right now; no need to replace it over and
@@ -66,7 +64,6 @@ class SavepathParser(object):
         self.relative_to_path = relative_to_path
 
         self.format_relative_path = format_relative_path
-
 
     @staticmethod
     def time_replacer(match, timestamp):

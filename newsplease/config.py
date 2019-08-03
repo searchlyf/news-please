@@ -161,6 +161,7 @@ class CrawlerConfig(object):
             raise RuntimeError("No section set in option-getting")
         return self.__config[self.__current_section][option]
 
+
 class JsonConfig(object):
     """
     The actual class. First parameter: config-file.

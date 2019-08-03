@@ -686,7 +686,7 @@ class PandasStorage(ExtractedInformationStorage):
         ]
 
         file_name = self.database["file_name"]
-        data_path ="/mnt/d/data/news-please"
+        data_path = "/mnt/d/data/news-please"
         self.full_path = os.path.join(data_path, file_name, ".pickle")
 
         try:
