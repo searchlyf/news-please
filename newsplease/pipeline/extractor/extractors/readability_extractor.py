@@ -1,9 +1,12 @@
+import logging
 from copy import deepcopy
 
 from readability import Document
 
 from .abstract_extractor import AbstractExtractor
 from ..article_candidate import ArticleCandidate
+
+logging.getLogger("readability").setLevel(logging.WARNING)
 
 
 class ReadabilityExtractor(AbstractExtractor):

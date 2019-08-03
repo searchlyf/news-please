@@ -184,7 +184,7 @@ def __start_commoncrawl_extractor(
     strict_date=True,
     reuse_previously_downloaded_files=True,
     local_download_dir_warc=None,
-    continue_after_error=True,
+    continue_after_error=False,
     show_download_progress=False,
     log_level=logging.ERROR,
     delete_warc_after_extraction=True,

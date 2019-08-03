@@ -35,7 +35,7 @@ class Extractor:
                     # instantiate extractor
                     instance = getattr(module, member[0], None)()
                     if instance is not None:
-                        logger.info("Extractor initialized: %s", extractor)
+                        logger.debug("Extractor initialized: %s", extractor)
                         self.extractor_list.append(instance)
                     else:
                         logger.error(

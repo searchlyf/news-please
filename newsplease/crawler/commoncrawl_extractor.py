@@ -236,8 +236,8 @@ class CommonCrawlExtractor:
                                 article = NewsPlease.from_warc(record)
                             counter_article_passed += 1
 
-                            self.__logger.info(
-                                "article pass (%s; %s; %s)",
+                            self.__logger.debug(
+                                "article passed filter (%s; %s; %s)",
                                 article.source_domain,
                                 article.date_publish,
                                 article.title,
@@ -247,14 +247,14 @@ class CommonCrawlExtractor:
                             counter_article_discarded += 1
 
                             if article:
-                                self.__logger.info(
+                                self.__logger.debug(
                                     "article discard (%s; %s; %s)",
                                     article.source_domain,
                                     article.date_publish,
                                     article.title,
                                 )
                             else:
-                                self.__logger.info(
+                                self.__logger.debug(
                                     "article discard (%s)",
                                     record.rec_headers.get_header("WARC-Target-URI"),
                                 )
@@ -262,7 +262,7 @@ class CommonCrawlExtractor:
                         if counter_article_total % 10 == 0:
                             elapsed_secs = time.time() - start_time
                             secs_per_article = elapsed_secs / counter_article_total
-                            self.__logger.info("statistics")
+                            self.__logger.info("")
                             self.__logger.info(
                                 "pass = %i, discard = %i, error = %i, total = %i",
                                 counter_article_passed,
