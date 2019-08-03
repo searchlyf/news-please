@@ -40,8 +40,8 @@
     # },
     {
       # nytimes.com should run pretty well with default config:
-      "url": "http://www.nytimes.com/"
-      # "url": "http://www.eastmoney.com/sitemap.html"
+      # "url": "http://www.nytimes.com/"
+      "url": "http://www.eastmoney.com/sitemap.html"
 
       # to create an additional RssCrawler daemon for this site that runs every hour, we could either use
       # "additional_rss_daemon": 3600
