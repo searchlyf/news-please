@@ -24,7 +24,7 @@ class CommonCrawlExtractor:
     # remote url where we can download the warc file
     __warc_download_url = None
     # download dir for warc files
-    __local_download_dir_warc = "./cc_download_warc/"
+    __local_download_dir_warc = None
     # hosts (if None or empty list, any host is OK)
     __filter_valid_hosts = []  # example: ['elrancaguino.cl']
     # start date (if None, any date is OK as start date), as datetime
@@ -51,8 +51,6 @@ class CommonCrawlExtractor:
     __callback_on_article_extracted = None
     # event handler called when a warc file is fully processed
     __callback_on_warc_completed = None
-    # if the download progress is shown
-    __show_download_progress = False
 
     # logging
     logging.basicConfig(level=__log_level)
@@ -159,26 +157,6 @@ class CommonCrawlExtractor:
         lines = stdout_data.splitlines()
         return lines
 
-    def __on_download_progress_update(self, blocknum, blocksize, totalsize):
-        """
-        Prints some download progress information
-        :param blocknum:
-        :param blocksize:
-        :param totalsize:
-        :return:
-        """
-        if not self.__show_download_progress:
-            return
-
-        readsofar = blocknum * blocksize
-        if totalsize > 0:
-            s = f"{readsofar} / {totalsize}"
-            sys.stdout.write(s)
-            if readsofar >= totalsize:  # near the end
-                sys.stderr.write("\r")
-        else:  # total size is unknown
-            sys.stdout.write(f"read {readsofar}")
-
     def __download(self, url):
         """
         Download and save a file locally.
@@ -203,9 +181,7 @@ class CommonCrawlExtractor:
 
             # download
             self.__logger.info("downloading %s (local: %s)", url, local_filepath)
-            urllib.request.urlretrieve(
-                url, local_filepath, reporthook=self.__on_download_progress_update
-            )
+            urllib.request.urlretrieve(url, local_filepath)
             self.__logger.info("download completed, local file: %s", local_filepath)
             return local_filepath
 
@@ -318,7 +294,6 @@ class CommonCrawlExtractor:
         reuse_previously_downloaded_files=True,
         local_download_dir_warc=None,
         continue_after_error=True,
-        show_download_progress=False,
         log_level=logging.ERROR,
         delete_warc_after_extraction=True,
         log_pathname_fully_extracted_warcs=None,
@@ -339,7 +314,6 @@ class CommonCrawlExtractor:
         :param reuse_previously_downloaded_files:
         :param local_download_dir_warc:
         :param continue_after_error:
-        :param show_download_progress:
         :param log_level:
         :return:
         """
@@ -348,13 +322,11 @@ class CommonCrawlExtractor:
         self.__filter_start_date = start_date
         self.__filter_end_date = end_date
         self.__filter_strict_date = strict_date
-        if local_download_dir_warc:
-            self.__local_download_dir_warc = local_download_dir_warc
+        self.__local_download_dir_warc = local_download_dir_warc
         self.__reuse_previously_downloaded_files = reuse_previously_downloaded_files
         self.__continue_after_error = continue_after_error
         self.__callback_on_article_extracted = callback_on_article_extracted
         self.__callback_on_warc_completed = callback_on_warc_completed
-        self.__show_download_progress = show_download_progress
         self.__log_level = log_level
         self.__delete_warc_after_extraction = delete_warc_after_extraction
         self.__log_pathname_fully_extracted_warcs = log_pathname_fully_extracted_warcs

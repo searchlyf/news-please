@@ -17,15 +17,16 @@ This script uses relative imports to ensure that the latest, local version of ne
 that might have been installed with pip. Hence, you must run this script following this workflow.
 git clone https://github.com/fhamborg/news-please.git
 cd news-please
-python3 -m newsplease.examples.commoncrawl
+python3 -m newsplease.commoncrawl
 """
+import datetime
 import hashlib
 import json
 import logging
 import os
 import sys
 
-from crawler import commoncrawl_crawler as commoncrawl_crawler
+from crawler import commoncrawl_crawler
 
 __author__ = "Felix Hamborg"
 __copyright__ = "Copyright 2017"
@@ -34,13 +35,13 @@ __credits__ = ["Sebastian Nagel"]
 
 ############ YOUR CONFIG ############
 # download dir for warc files
-my_local_download_dir_warc = "./cc_download_warc/"
+my_local_download_dir_warc = "/mnt/d/data/cc_download_warc/"
 # download dir for articles
-my_local_download_dir_article = "./cc_download_articles/"
+my_local_download_dir_article = "/mnt/d/data/cc_download_articles/"
 # hosts (if None or empty list, any host is OK)
 my_filter_valid_hosts = []  # example: ['elrancaguino.cl']
 # start date (if None, any date is OK as start date), as datetime
-my_filter_start_date = None  # datetime.datetime(2016, 1, 1)
+my_filter_start_date = datetime.datetime(2019, 1, 1)
 # end date (if None, any date is OK as end date), as datetime
 my_filter_end_date = None  # datetime.datetime(2016, 12, 31)
 # if date filtering is strict and news-please could not detect the date of an article, the article will be discarded
@@ -49,11 +50,8 @@ my_filter_strict_date = True
 # again. Note that there is no check whether the file has been downloaded completely or is valid!
 my_reuse_previously_downloaded_files = True
 # continue after error
-my_continue_after_error = True
-# show the progress of downloading the WARC files
-my_show_download_progress = False
-# log_level
-my_log_level = logging.INFO
+my_continue_after_error = False
+
 # json export style
 my_json_export_style = 1  # 0 (minimize), 1 (pretty)
 # number of extraction processes
@@ -67,8 +65,8 @@ my_continue_process = True
 
 
 # logging
-logging.basicConfig(level=my_log_level)
-__logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def __setup__():
@@ -153,7 +151,6 @@ def callback_on_warc_completed(
 def main():
     global my_local_download_dir_warc
     global my_local_download_dir_article
-    delete_warc_after_extraction = False
     global my_number_of_extraction_processes
 
     if len(sys.argv) >= 2:
@@ -165,10 +162,11 @@ def main():
     if len(sys.argv) >= 5:
         my_number_of_extraction_processes = int(sys.argv[4])
 
-    print("my_local_download_dir_warc=" + my_local_download_dir_warc)
-    print("my_local_download_dir_article=" + my_local_download_dir_article)
-    print("delete_warc_after_extraction=" + str(delete_warc_after_extraction))
-    print("my_number_of_extraction_processes=" + str(my_number_of_extraction_processes))
+    logger.info("my_local_download_dir_warc=" + my_local_download_dir_warc)
+    logger.info("my_local_download_dir_article=" + my_local_download_dir_article)
+    logger.info(
+        "my_number_of_extraction_processes=" + str(my_number_of_extraction_processes)
+    )
 
     __setup__()
     commoncrawl_crawler.crawl_from_commoncrawl(
@@ -181,11 +179,9 @@ def main():
         reuse_previously_downloaded_files=my_reuse_previously_downloaded_files,
         local_download_dir_warc=my_local_download_dir_warc,
         continue_after_error=my_continue_after_error,
-        show_download_progress=my_show_download_progress,
         number_of_extraction_processes=my_number_of_extraction_processes,
-        log_level=my_log_level,
-        delete_warc_after_extraction=True,
-        continue_process=True,
+        delete_warc_after_extraction=False,
+        continue_process=my_continue_process,
     )
 
 

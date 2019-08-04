@@ -39,7 +39,7 @@ __counter_warc_processed = 0
 __start_time = time.time()
 
 
-def __setup(local_download_dir_warc, log_level):
+def __setup(local_download_dir_warc):
     """
     Setup
     :return:
@@ -52,7 +52,6 @@ def __setup(local_download_dir_warc, log_level):
         local_download_dir_warc, "fullyextractedwarcs.list"
     )
     # set own logger
-    logging.basicConfig(level=log_level)
     __logger = logging.getLogger(__name__)
 
 
@@ -87,7 +86,7 @@ def __get_remote_index():
     # get the remote info
     cmd = (
         "aws s3 ls --recursive s3://commoncrawl/crawl-data/CC-NEWS/ --no-sign-request > .tmpaws.txt && "
-        "awk '{ print $4 }' .tmpaws.txt && "
+        "awk '{ print $4 }' .tmpaws.txt | grep 20190801 && "
         "rm .tmpaws.txt"
     )
     __logger.info("executing: %s", cmd)
@@ -185,8 +184,6 @@ def __start_commoncrawl_extractor(
     reuse_previously_downloaded_files=True,
     local_download_dir_warc=None,
     continue_after_error=False,
-    show_download_progress=False,
-    log_level=logging.ERROR,
     delete_warc_after_extraction=True,
     continue_process=True,
     log_pathname_fully_extracted_warcs=None,
@@ -203,8 +200,6 @@ def __start_commoncrawl_extractor(
     :param reuse_previously_downloaded_files:
     :param local_download_dir_warc:
     :param continue_after_error:
-    :param show_download_progress:
-    :param log_level:
     :return:
     """
     commoncrawl_extractor = CommonCrawlExtractor()
@@ -219,8 +214,6 @@ def __start_commoncrawl_extractor(
         reuse_previously_downloaded_files=reuse_previously_downloaded_files,
         local_download_dir_warc=local_download_dir_warc,
         continue_after_error=continue_after_error,
-        show_download_progress=show_download_progress,
-        log_level=log_level,
         delete_warc_after_extraction=delete_warc_after_extraction,
         log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs,
     )
@@ -236,9 +229,7 @@ def crawl_from_commoncrawl(
     reuse_previously_downloaded_files=True,
     local_download_dir_warc=None,
     continue_after_error=True,
-    show_download_progress=False,
     number_of_extraction_processes=4,
-    log_level=logging.ERROR,
     delete_warc_after_extraction=True,
     continue_process=True,
 ):
@@ -257,11 +248,9 @@ def crawl_from_commoncrawl(
     :param reuse_previously_downloaded_files:
     :param local_download_dir_warc:
     :param continue_after_error:
-    :param show_download_progress:
-    :param log_level:
     :return:
     """
-    __setup(local_download_dir_warc, log_level)
+    __setup(local_download_dir_warc)
 
     global __extern_callback_on_warc_completed
     __extern_callback_on_warc_completed = callback_on_warc_completed
@@ -312,8 +301,6 @@ def crawl_from_commoncrawl(
                     reuse_previously_downloaded_files=reuse_previously_downloaded_files,
                     local_download_dir_warc=local_download_dir_warc,
                     continue_after_error=continue_after_error,
-                    show_download_progress=show_download_progress,
-                    log_level=log_level,
                     delete_warc_after_extraction=delete_warc_after_extraction,
                     log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs,
                 ),
@@ -332,8 +319,6 @@ def crawl_from_commoncrawl(
                 reuse_previously_downloaded_files=reuse_previously_downloaded_files,
                 local_download_dir_warc=local_download_dir_warc,
                 continue_after_error=continue_after_error,
-                show_download_progress=show_download_progress,
-                log_level=log_level,
                 delete_warc_after_extraction=delete_warc_after_extraction,
                 log_pathname_fully_extracted_warcs=__log_pathname_fully_extracted_warcs,
             )
