@@ -324,7 +324,7 @@ class ExtractedInformationStorage(object):
             "authors": item["article_author"],
             "date_download": item["download_date"],
             "date_modify": item["modified_date"],
-            "date_publish": item["article_publish_date"],
+            "pub_date": item["pub_date"],
             "description": item["article_description"],
             "filename": item["filename"],
             "image_url": item["article_image"],
@@ -365,8 +365,8 @@ class ExtractedInformationStorage(object):
         news_article.date_modify = ExtractedInformationStorage.datestring_to_date(
             item["date_modify"]
         )
-        news_article.date_publish = ExtractedInformationStorage.datestring_to_date(
-            item["date_publish"]
+        news_article.pub_date = ExtractedInformationStorage.datestring_to_date(
+            item["pub_date"]
         )
         news_article.description = item["description"]
         news_article.filename = item["filename"]
@@ -564,7 +564,7 @@ class ElasticsearchStorage(ExtractedInformationStorage):
 
 class DateFilter(object):
     """
-    Filters articles based on their publishing date, articles with a date outside of a specified interval are dropped.
+    Filters articles based on their publish date, articles with a date outside of a specified interval are dropped.
     This module should be placed after the KM4 article extractor.
     """
 
@@ -608,41 +608,40 @@ class DateFilter(object):
     def process_item(self, item, spider):
 
         # Check if date could be extracted
-        if item["article_publish_date"] is None and self.strict_mode:
+        if item["pub_date"] is None and self.strict_mode:
             raise DropItem(
-                "DateFilter: %s: Publishing date is missing and strict mode is enabled."
+                "DateFilter: %s: publish date is missing and strict mode is enabled."
                 % item["url"]
             )
-        elif item["article_publish_date"] is None:
+        elif item["pub_date"] is None:
             return item
         else:
             # Create datetime object
             try:
-                publish_date = datetime.datetime.strptime(
-                    str(item["article_publish_date"]), "%Y-%m-%d %H:%M:%S"
+                pub_date = datetime.datetime.strptime(
+                    str(item["pub_date"]), "%Y-%m-%d %H:%M:%S"
                 )
             except ValueError as error:
                 logger.warning(
                     "DateFilter: Extracted date has the wrong format: %s - %s"
-                    % (item["article_publishing_date"], item["url"])
+                    % (item["pub_date"], item["url"])
                 )
                 if self.strict_mode:
                     raise DropItem(
                         "DateFilter: %s: Dropped due to wrong date format: %s"
-                        % (item["url"], item["publish_date"])
+                        % (item["url"], item["pub_date"])
                     )
                 else:
                     return item
             # Check interval boundaries
-            if self.start_date is not None and self.start_date > publish_date:
+            if self.start_date is not None and self.start_date > pub_date:
                 raise DropItem(
-                    "DateFilter: %s: Article is too old: %s"
-                    % (item["url"], publish_date)
+                    "DateFilter: %s: Article is too old: %s" % (item["url"], pub_date)
                 )
-            elif self.end_date is not None and self.end_date < publish_date:
+            elif self.end_date is not None and self.end_date < pub_date:
                 raise DropItem(
                     "DateFilter: %s: Article is too young: %s "
-                    % (item["url"], publish_date)
+                    % (item["url"], pub_date)
                 )
             else:
                 return item
@@ -675,7 +674,7 @@ class PandasStorage(ExtractedInformationStorage):
             "filename",
             "date_download",
             "date_modify",
-            "date_publish",
+            "pub_date",
             "title",
             "description",
             "text",
@@ -712,7 +711,7 @@ class PandasStorage(ExtractedInformationStorage):
             "authors": item["article_author"],
             "date_download": item["download_date"],
             "date_modify": item["modified_date"],
-            "date_publish": item["article_publish_date"],
+            "pub_date": item["pub_date"],
             "description": item["article_description"],
             "filename": item["filename"],
             "image_url": item["article_image"],
@@ -740,8 +739,8 @@ class PandasStorage(ExtractedInformationStorage):
         self.df["date_modify"] = pd.to_datetime(
             self.df["date_modify"], errors="coerce", infer_datetime_format=True
         )
-        self.df["date_publish"] = pd.to_datetime(
-            self.df["date_publish"], errors="coerce", infer_datetime_format=True
+        self.df["pub_date"] = pd.to_datetime(
+            self.df["pub_date"], errors="coerce", infer_datetime_format=True
         )
         self.df.to_pickle(self.full_path)
         logger.info("Wrote to Pandas to %s", self.full_path)

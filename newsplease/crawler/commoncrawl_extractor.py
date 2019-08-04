@@ -19,6 +19,8 @@ __author__ = "Felix Hamborg"
 __copyright__ = "Copyright 2017"
 __credits__ = ["Sebastian Nagel"]
 
+logger = logging.getLogger(__name__)
+
 
 class CommonCrawlExtractor:
     # remote url where we can download the warc file
@@ -33,9 +35,6 @@ class CommonCrawlExtractor:
     __filter_end_date = None
     # if date filtering is string, e.g., if we could not detect the date of an article, we will discard the article
     __filter_strict_date = True
-    # if True, the script checks whether a file has been downloaded already and uses that file instead of downloading
-    # again. Note that there is no check whether the file has been downloaded completely or is valid!
-    __reuse_previously_downloaded_files = True
     # continue after error
     __continue_after_error = False
     # log level
@@ -54,7 +53,6 @@ class CommonCrawlExtractor:
 
     # logging
     logging.basicConfig(level=__log_level)
-    __logger = logging.getLogger(__name__)
 
     def __setup(self):
         """
@@ -66,7 +64,7 @@ class CommonCrawlExtractor:
 
         # set own logger
         logging.basicConfig(level=self.__log_level)
-        self.__logger = logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
 
     def __register_fully_extracted_warc_file(self, warc_url):
         """
@@ -79,7 +77,7 @@ class CommonCrawlExtractor:
 
     def __filter_record(self, warc_record, article=None):
         """
-        Returns true if a record passes all tests: hosts, publishing date
+        Returns true if a record passes all tests: hosts, publish date
         :param warc_record:
         :return: A tuple of (True or False) and an article (might be None)
         """
@@ -102,32 +100,20 @@ class CommonCrawlExtractor:
             if not article:
                 article = NewsPlease.from_warc(warc_record)
 
-            publishing_date = self.__get_publishing_date(warc_record, article)
-            if not publishing_date:
+            if not article.pub_date:
                 if self.__filter_strict_date:
                     return False, article
             else:  # here we for sure have a date
                 # is article published too early?
                 if (
                     self.__filter_start_date
-                    and publishing_date < self.__filter_start_date
+                    and article.pub_date < self.__filter_start_date
                 ):
                     return False, article
-                if self.__filter_end_date and publishing_date > self.__filter_end_date:
+                if self.__filter_end_date and article.pub_date > self.__filter_end_date:
                     return False, article
 
         return True, article
-
-    def __get_publishing_date(self, warc_record, article):
-        """
-        Extracts the publishing date from the record
-        :param warc_record:
-        :return:
-        """
-        if "publish_date" in article:
-            return parser.parse(article.publish_date)
-        else:
-            return None
 
     def __get_download_url(self, name):
         """
@@ -150,7 +136,7 @@ class CommonCrawlExtractor:
             "awk '{ print $4 }' tmpaws.txt && "
             "rm tmpaws.txt"
         )
-        self.__logger.info("executing: %s", cmd)
+        logger.info("executing: %s", cmd)
         stdout_data = subprocess.getoutput(cmd)
         print(stdout_data)
 
@@ -166,11 +152,10 @@ class CommonCrawlExtractor:
         local_filename = urllib.parse.quote_plus(url)
         local_filepath = os.path.join(self.__local_download_dir_warc, local_filename)
 
-        if os.path.isfile(local_filepath) and self.__reuse_previously_downloaded_files:
-            self.__logger.info(
-                "found local file %s, not downloading again due to configuration",
-                local_filepath,
-            )
+        # if True, the script checks whether a file has been downloaded already and uses that file instead of downloading
+        # again. Note that there is no check whether the file has been downloaded completely or is valid!
+        if os.path.isfile(local_filepath):
+            logger.info("found local file %s: ", local_filepath)
             return local_filepath
         else:
             # cleanup
@@ -180,9 +165,9 @@ class CommonCrawlExtractor:
                 pass
 
             # download
-            self.__logger.info("downloading %s (local: %s)", url, local_filepath)
+            logger.info("downloading %s (local: %s)", url, local_filepath)
             urllib.request.urlretrieve(url, local_filepath)
-            self.__logger.info("download completed, local file: %s", local_filepath)
+            logger.info("download completed, local file: %s", local_filepath)
             return local_filepath
 
     def __process_warc_gz_file(self, path_name):
@@ -193,69 +178,65 @@ class CommonCrawlExtractor:
         :param path_name:
         :return:
         """
-        counter_article_total = 0
-        counter_article_passed = 0
-        counter_article_discarded = 0
-        counter_article_error = 0
+        article_total = 0
+        article_passed = 0
+        article_discarded = 0
+        article_error = 0
         start_time = time.time()
 
         with open(path_name, "rb") as stream:
             for record in ArchiveIterator(stream):
                 try:
                     if record.rec_type == "response":
-                        counter_article_total += 1
+                        article_total += 1
 
                         # if the article passes filter tests, we notify the user
                         filter_pass, article = self.__filter_record(record)
                         if filter_pass:
                             if not article:
                                 article = NewsPlease.from_warc(record)
-                            counter_article_passed += 1
+                            article_passed += 1
 
-                            self.__logger.debug(
+                            logger.debug(
                                 "article passed filter (%s; %s; %s)",
                                 article.source_domain,
-                                article.date_publish,
+                                article.pub_date,
                                 article.title,
                             )
                             self.__callback_on_article_extracted(article)
                         else:
-                            counter_article_discarded += 1
+                            article_discarded += 1
 
                             if article:
-                                self.__logger.debug(
+                                logger.debug(
                                     "article discard (%s; %s; %s)",
                                     article.source_domain,
-                                    article.date_publish,
+                                    article.pub_date,
                                     article.title,
                                 )
                             else:
-                                self.__logger.debug(
+                                logger.debug(
                                     "article discard (%s)",
                                     record.rec_headers.get_header("WARC-Target-URI"),
                                 )
 
-                        if counter_article_total % 10 == 0:
-                            elapsed_secs = time.time() - start_time
-                            secs_per_article = elapsed_secs / counter_article_total
-                            self.__logger.info("")
-                            self.__logger.info(
+                        if article_total % 100 == 0:
+                            logger.info(
                                 "pass = %i, discard = %i, error = %i, total = %i",
-                                counter_article_passed,
-                                counter_article_discarded,
-                                counter_article_error,
-                                counter_article_total,
-                            )
-                            self.__logger.info(
-                                f"extraction from current WARC file started {start_time};{secs_per_article} s/article"
+                                article_passed,
+                                article_discarded,
+                                article_error,
+                                article_total,
                             )
                 except:
                     if self.__continue_after_error:
-                        self.__logger.error("Unexpected error: %s", sys.exc_info()[0])
-                        counter_article_error += 1
+                        logger.error("Unexpected error: %s", sys.exc_info()[0])
+                        article_error += 1
                         pass
                     else:
                         raise
+        secs_per_article = (time.time() - start_time) / article_total
+        logger.info(f"extracting WARC {secs_per_article} s/article")
 
         # cleanup
         if self.__delete_warc_after_extraction:
@@ -264,10 +245,10 @@ class CommonCrawlExtractor:
         self.__register_fully_extracted_warc_file(self.__warc_download_url)
         self.__callback_on_warc_completed(
             self.__warc_download_url,
-            counter_article_passed,
-            counter_article_discarded,
-            counter_article_error,
-            counter_article_total,
+            article_passed,
+            article_discarded,
+            article_error,
+            article_total,
         )
 
     def __run(self):
@@ -291,7 +272,6 @@ class CommonCrawlExtractor:
         start_date=None,
         end_date=None,
         strict_date=True,
-        reuse_previously_downloaded_files=True,
         local_download_dir_warc=None,
         continue_after_error=True,
         log_level=logging.ERROR,
@@ -311,7 +291,6 @@ class CommonCrawlExtractor:
         :param start_date:
         :param end_date:
         :param strict_date:
-        :param reuse_previously_downloaded_files:
         :param local_download_dir_warc:
         :param continue_after_error:
         :param log_level:
@@ -323,7 +302,6 @@ class CommonCrawlExtractor:
         self.__filter_end_date = end_date
         self.__filter_strict_date = strict_date
         self.__local_download_dir_warc = local_download_dir_warc
-        self.__reuse_previously_downloaded_files = reuse_previously_downloaded_files
         self.__continue_after_error = continue_after_error
         self.__callback_on_article_extracted = callback_on_article_extracted
         self.__callback_on_warc_completed = callback_on_warc_completed

@@ -55,18 +55,6 @@ def __setup(local_download_dir_warc):
     __logger = logging.getLogger(__name__)
 
 
-def __get_publishing_date(warc_record, article):
-    """
-    Extracts the publishing date from the article
-    :param warc_record:
-    :return:
-    """
-    if article.publish_date:
-        return parser.parse(article.publish_date)
-    else:
-        return None
-
-
 def __get_download_url(name):
     """
     Creates a download url given the name
@@ -181,7 +169,6 @@ def __start_commoncrawl_extractor(
     start_date=None,
     end_date=None,
     strict_date=True,
-    reuse_previously_downloaded_files=True,
     local_download_dir_warc=None,
     continue_after_error=False,
     delete_warc_after_extraction=True,
@@ -197,7 +184,6 @@ def __start_commoncrawl_extractor(
     :param start_date:
     :param end_date:
     :param strict_date:
-    :param reuse_previously_downloaded_files:
     :param local_download_dir_warc:
     :param continue_after_error:
     :return:
@@ -211,7 +197,6 @@ def __start_commoncrawl_extractor(
         start_date=start_date,
         end_date=end_date,
         strict_date=strict_date,
-        reuse_previously_downloaded_files=reuse_previously_downloaded_files,
         local_download_dir_warc=local_download_dir_warc,
         continue_after_error=continue_after_error,
         delete_warc_after_extraction=delete_warc_after_extraction,
@@ -226,7 +211,6 @@ def crawl_from_commoncrawl(
     start_date=None,
     end_date=None,
     strict_date=True,
-    reuse_previously_downloaded_files=True,
     local_download_dir_warc=None,
     continue_after_error=True,
     number_of_extraction_processes=4,
@@ -245,7 +229,6 @@ def crawl_from_commoncrawl(
     :param start_date:
     :param end_date:
     :param strict_date:
-    :param reuse_previously_downloaded_files:
     :param local_download_dir_warc:
     :param continue_after_error:
     :return:
@@ -298,7 +281,6 @@ def crawl_from_commoncrawl(
                     start_date=start_date,
                     end_date=end_date,
                     strict_date=strict_date,
-                    reuse_previously_downloaded_files=reuse_previously_downloaded_files,
                     local_download_dir_warc=local_download_dir_warc,
                     continue_after_error=continue_after_error,
                     delete_warc_after_extraction=delete_warc_after_extraction,
@@ -316,7 +298,6 @@ def crawl_from_commoncrawl(
                 start_date=start_date,
                 end_date=end_date,
                 strict_date=strict_date,
-                reuse_previously_downloaded_files=reuse_previously_downloaded_files,
                 local_download_dir_warc=local_download_dir_warc,
                 continue_after_error=continue_after_error,
                 delete_warc_after_extraction=delete_warc_after_extraction,

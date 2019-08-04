@@ -2,8 +2,8 @@ import logging
 
 from newspaper import Article
 
+from newsplease.pipeline.extractor.article_candidate import ArticleCandidate
 from .abstract_extractor import AbstractExtractor
-from ..article_candidate import ArticleCandidate
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +36,13 @@ class NewspaperExtractor(AbstractExtractor):
         article_candidate.author = article.authors
         if article.publish_date is not None:
             try:
-                article_candidate.publish_date = article.publish_date.strftime(
+                article_candidate.pub_date = article.publish_date.strftime(
                     "%Y-%m-%d %H:%M:%S"
                 )
             except ValueError as exception:
                 logger.debug(
                     "%s: Newspaper failed to extract the date in the supported format,"
-                    "Publishing date set to None" % item["url"]
+                    "publish date set to None" % item["url"]
                 )
         article_candidate.language = article.meta_lang
 

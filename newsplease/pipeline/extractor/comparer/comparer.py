@@ -37,6 +37,6 @@ class Comparer:
         result.text = self.comparer_text.extract(item, article_candidates)
         result.topimage = self.comparer_topimage.extract(item, article_candidates)
         result.author = self.comparer_author.extract(item, article_candidates)
-        result.publish_date = self.comparer_date.extract(item, article_candidates)
+        result.pub_date = self.comparer_date.extract(item, article_candidates)
         result.language = self.comparer_language.extract(item, article_candidates)
         return result

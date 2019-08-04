@@ -9,6 +9,6 @@ class ArticleCandidate:
     text = None
     topimage = None
     author = None
-    publish_date = None
+    pub_date = None
     extractor = None
     language = None

@@ -46,9 +46,6 @@ my_filter_start_date = datetime.datetime(2019, 1, 1)
 my_filter_end_date = None  # datetime.datetime(2016, 12, 31)
 # if date filtering is strict and news-please could not detect the date of an article, the article will be discarded
 my_filter_strict_date = True
-# if True, the script checks whether a file has been downloaded already and uses that file instead of downloading
-# again. Note that there is no check whether the file has been downloaded completely or is valid!
-my_reuse_previously_downloaded_files = True
 # continue after error
 my_continue_after_error = False
 
@@ -176,7 +173,6 @@ def main():
         start_date=my_filter_start_date,
         end_date=my_filter_end_date,
         strict_date=my_filter_strict_date,
-        reuse_previously_downloaded_files=my_reuse_previously_downloaded_files,
         local_download_dir_warc=my_local_download_dir_warc,
         continue_after_error=my_continue_after_error,
         number_of_extraction_processes=my_number_of_extraction_processes,

@@ -35,7 +35,7 @@ class ReadabilityExtractor(AbstractExtractor):
         article_candidate.text = self._text(item)
         article_candidate.topimage = self._topimage(item)
         article_candidate.author = self._author(item)
-        article_candidate.publish_date = self._publish_date(item)
+        article_candidate.pub_date = self._pub_date(item)
         article_candidate.language = self._language(item)
 
         return article_candidate

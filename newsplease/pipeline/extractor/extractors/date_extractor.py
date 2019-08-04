@@ -27,12 +27,12 @@ class DateExtractor(AbstractExtractor):
     def __init__(self):
         self.name = "date_extractor"
 
-    def _publish_date(self, item):
-        """Returns the publish_date of the extracted article."""
+    def _pub_date(self, item):
+        """Returns the pub_date of the extracted article."""
 
         url = item["url"]
         html = deepcopy(item["spider_response"].body)
-        publish_date = None
+        pub_date = None
 
         try:
             if html is None:
@@ -44,18 +44,18 @@ class DateExtractor(AbstractExtractor):
 
             html = BeautifulSoup(html, "lxml")
 
-            publish_date = self._extract_from_json(html)
-            if publish_date is None:
-                publish_date = self._extract_from_meta(html)
-            if publish_date is None:
-                publish_date = self._extract_from_html_tag(html)
-            if publish_date is None:
-                publish_date = self._extract_from_url(url)
+            pub_date = self._extract_from_json(html)
+            if pub_date is None:
+                pub_date = self._extract_from_meta(html)
+            if pub_date is None:
+                pub_date = self._extract_from_html_tag(html)
+            if pub_date is None:
+                pub_date = self._extract_from_url(url)
         except Exception as e:
             # print(e.message, e.args)
             pass
 
-        return publish_date
+        return pub_date
 
     def parse_date_str(self, date_string):
         try:
@@ -104,23 +104,32 @@ class DateExtractor(AbstractExtractor):
             http_equiv = meta.get("http-equiv", "").lower()
             meta_property = meta.get("property", "").lower()
 
+            # <meta name="DATE_PUBLISHED" content="11/24/2015 01:05AM" />
+            # <meta name="cXenseParse:recs:publishtime" content="2015-11-26T14:42Z"/>
+            # <meta name="article_date_original" content="Thursday, November 26, 2015,  6:42 AM" />
+            # <meta name="article.created" content="2015-11-26T11:53:00.000Z" />"date_published"
+            # <meta name="published-date" content="2015-11-26T11:53:00.000Z" />"cxenseparse:recs:publishtime"
+            # <meta name="article.published" content="2015-11-26T11:53:00.000Z" />"article_date_original"
+            # <meta name="sailthru.date" content="2015-11-25T19:56:04+0000" />"article.created"
+            # <meta name="Date" content="2015-11-26" />"published-date"
+            # <meta name="DC.date.issued" content="2015-11-26">"article.published"
+            # <meta name="timestamp"  data-type="date" content="2015-11-25 22:40:25" />"sailthru.date"
             # <meta name="pubdate" content="2015-11-26T07:11:02Z" >
-            if "pubdate" == meta_name:
-                date = meta["content"].strip()
-                break
-
             # <meta name='publishdate' content='201511261006'/>
-            if "publishdate" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="timestamp"  data-type="date" content="2015-11-25 22:40:25" />
-            if "timestamp" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="DC.date.issued" content="2015-11-26">
-            if "dc.date.issued" == meta_name:
+            if meta_name in [
+                "article.created",
+                "article.published",
+                "article_date_original",
+                "cxenseparse:recs:publishtime",
+                "date",
+                "date_published",
+                "dc.date.issued",
+                "pubdate",
+                "publishdate",
+                "published-date",
+                "sailthru.date",
+                "timestamp",
+            ]:
                 date = meta["content"].strip()
                 break
 
@@ -128,47 +137,9 @@ class DateExtractor(AbstractExtractor):
             if "article:published_time" == meta_property:
                 date = meta["content"].strip()
                 break
-                # <meta name="Date" content="2015-11-26" />
-            if "date" == meta_name:
-                date = meta["content"].strip()
-                break
 
             # <meta property="bt:pubDate" content="2015-11-26T00:10:33+00:00">
             if "bt:pubdate" == meta_property:
-                date = meta["content"].strip()
-                break
-                # <meta name="sailthru.date" content="2015-11-25T19:56:04+0000" />
-            if "sailthru.date" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="article.published" content="2015-11-26T11:53:00.000Z" />
-            if "article.published" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="published-date" content="2015-11-26T11:53:00.000Z" />
-            if "published-date" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="article.created" content="2015-11-26T11:53:00.000Z" />
-            if "article.created" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="article_date_original" content="Thursday, November 26, 2015,  6:42 AM" />
-            if "article_date_original" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="cXenseParse:recs:publishtime" content="2015-11-26T14:42Z"/>
-            if "cxenseparse:recs:publishtime" == meta_name:
-                date = meta["content"].strip()
-                break
-
-            # <meta name="DATE_PUBLISHED" content="11/24/2015 01:05AM" />
-            if "date_published" == meta_name:
                 date = meta["content"].strip()
                 break
 

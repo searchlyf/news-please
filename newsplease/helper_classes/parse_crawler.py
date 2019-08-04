@@ -72,7 +72,7 @@ class ParseCrawler(object):
         article["article_text"] = "NULL"
         article["article_image"] = "NULL"
         article["article_author"] = "NULL"
-        article["article_publish_date"] = "NULL"
+        article["pub_date"] = "NULL"
         article["article_language"] = "NULL"
         return article
 

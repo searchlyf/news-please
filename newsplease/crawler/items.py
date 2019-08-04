@@ -38,7 +38,7 @@ class NewscrawlerItem(scrapy.Item):
     article_image = scrapy.Field()
     # Extracted article author
     article_author = scrapy.Field()
-    # Extracted publishing date
-    article_publish_date = scrapy.Field()
+    # Extracted publish date
+    pub_date = scrapy.Field()
     # Extracted language of the article
     article_language = scrapy.Field()

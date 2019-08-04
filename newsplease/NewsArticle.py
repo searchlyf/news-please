@@ -6,7 +6,7 @@ class NewsArticle(object):
     authors = []
     date_download = None
     date_modify = None
-    date_publish = None
+    pub_date = None
     description = None
     filename = None
     image_url = None
@@ -27,7 +27,7 @@ class NewsArticle(object):
         tmp = self.get_dict()
         tmp["date_download"] = str(tmp["date_download"])
         tmp["date_modify"] = str(tmp["date_modify"])
-        tmp["date_publish"] = str(tmp["date_publish"])
+        tmp["pub_date"] = str(tmp["pub_date"])
         return tmp
 
     def get_dict(self):
@@ -39,7 +39,7 @@ class NewsArticle(object):
             "authors": self.authors,
             "date_download": self.date_download,
             "date_modify": self.date_modify,
-            "date_publish": self.date_publish,
+            "pub_date": self.pub_date,
             "description": self.description,
             "filename": self.filename,
             "image_url": self.image_url,
