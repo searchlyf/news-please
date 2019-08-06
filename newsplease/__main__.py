@@ -422,7 +422,7 @@ Do you really want to do this? Write 'yes' to confirm: {yes}""".format(
 
         path = SavepathParser.get_base_path(
             SavepathParser.get_abs_path_static(
-                self.cfg.section("Files")["local_data_directory"],
+                self.cfg.section("Files")["data_directory"],
                 os.path.dirname(self.cfg_file_path),
             )
         )

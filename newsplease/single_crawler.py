@@ -107,7 +107,7 @@ class SingleCrawler(object):
 
         self.helper = Helper(
             self.cfg.section("Heuristics"),
-            self.cfg.section("Files")["local_data_directory"],
+            self.cfg.section("Files")["data_directory"],
             relative_to_path,
             self.cfg.section("Files")["format_relative_path"],
             sites,

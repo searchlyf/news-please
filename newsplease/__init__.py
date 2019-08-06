@@ -84,7 +84,7 @@ class NewsPlease:
         )
         item["html_title"] = title_encoded
         item["rss_title"] = title_encoded
-        item["local_path"] = None
+        item["path"] = None
         item["filename"] = filename
         item["download_date"] = download_date
         item["modified_date"] = None

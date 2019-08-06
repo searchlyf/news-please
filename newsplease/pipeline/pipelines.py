@@ -139,19 +139,19 @@ class MySQLStorage(object):
     cursor = None
     # initialize necessary DB queries for this pipe
     compare_versions = "SELECT * FROM CurrentVersions WHERE url=%s"
-    insert_current = "INSERT INTO CurrentVersions(local_path,\
+    insert_current = "INSERT INTO CurrentVersions(path,\
                           modified_date,download_date,source_domain,url,\
                           html_title, ancestor, descendant, version,\
-                          rss_title) VALUES (%(local_path)s,\
+                          rss_title) VALUES (%(path)s,\
                           %(modified_date)s, %(download_date)s,\
                           %(source_domain)s, %(url)s, %(html_title)s,\
                           %(ancestor)s, %(descendant)s, %(version)s,\
                           %(rss_title)s)"
 
-    insert_archive = "INSERT INTO ArchiveVersions(id, local_path,\
+    insert_archive = "INSERT INTO ArchiveVersions(id, path,\
                           modified_date,download_date,source_domain,url,\
                           html_title, ancestor, descendant, version,\
-                          rss_title) VALUES (%(db_id)s, %(local_path)s,\
+                          rss_title) VALUES (%(db_id)s, %(path)s,\
                           %(modified_date)s, %(download_date)s,\
                           %(source_domain)s, %(url)s, %(html_title)s,\
                           %(ancestor)s, %(descendant)s, %(version)s,\
@@ -206,7 +206,7 @@ class MySQLStorage(object):
         if old_version is not None:
             old_version_list = {
                 "db_id": old_version[0],
-                "local_path": old_version[1],
+                "path": old_version[1],
                 "modified_date": old_version[2],
                 "download_date": old_version[3],
                 "source_domain": old_version[4],
@@ -224,7 +224,7 @@ class MySQLStorage(object):
 
         # Add the new version of the article to the CurrentVersion table
         current_version_list = {
-            "local_path": item["local_path"],
+            "path": item["path"],
             "modified_date": item["modified_date"],
             "download_date": item["download_date"],
             "source_domain": item["source_domain"],
@@ -329,7 +329,7 @@ class ExtractedInformationStorage(object):
             "filename": item["filename"],
             "image_url": item["article_image"],
             "language": item["article_language"],
-            "localpath": item["local_path"],
+            "localpath": item["path"],
             "title": item["article_title"],
             "title_page": ExtractedInformationStorage.ensure_str(item["html_title"]),
             "title_rss": ExtractedInformationStorage.ensure_str(item["rss_title"]),
@@ -413,15 +413,15 @@ class HtmlFileStorage(ExtractedInformationStorage):
     # Save the html and filename to the local storage folder
     def process_item(self, item, spider):
         # Add a log entry confirming the save
-        logger.info("Saving HTML to %s", item["abs_local_path"])
+        logger.info("Saving HTML to %s", item["abs_path"])
 
         # Ensure path exists
-        dir_ = os.path.dirname(item["abs_local_path"])
+        dir_ = os.path.dirname(item["abs_path"])
         if not os.path.exists(dir_):
             os.makedirs(dir_)
 
         # Write raw html to local file system
-        with open(item["abs_local_path"], "wb") as file_:
+        with open(item["abs_path"], "wb") as file_:
             file_.write(item["spider_response"].body)
 
         return item
@@ -435,13 +435,13 @@ class JsonFileStorage(ExtractedInformationStorage):
     cfg = None
 
     def process_item(self, item, spider):
-        file_path = item["abs_local_path"] + ".json"
+        file_path = item["abs_path"] + ".json"
 
         # Add a log entry confirming the save
         logger.info("Saving JSON to %s", file_path)
 
         # Ensure path exists
-        dir_ = os.path.dirname(item["abs_local_path"])
+        dir_ = os.path.dirname(item["abs_path"])
         if not os.path.exists(dir_):
             os.makedirs(dir_)
 
@@ -716,7 +716,7 @@ class PandasStorage(ExtractedInformationStorage):
             "filename": item["filename"],
             "image_url": item["article_image"],
             "language": item["article_language"],
-            "localpath": item["local_path"],
+            "localpath": item["path"],
             "title": item["article_title"],
             "title_page": ExtractedInformationStorage.ensure_str(item["html_title"]),
             "title_rss": ExtractedInformationStorage.ensure_str(item["rss_title"]),

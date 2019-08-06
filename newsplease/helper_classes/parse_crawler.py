@@ -43,18 +43,14 @@ class ParseCrawler(object):
     def pass_to_pipeline(self, response, source_domain, rss_title=None):
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))
 
-        relative_local_path = self.helper.savepath_parser.get_savepath(response.url)
+        relative_path = self.helper.savepath_parser.get_savepath(response.url)
 
         article = NewscrawlerItem()
-        article["local_path"] = self.helper.savepath_parser.get_formatted_relative_path(
-            relative_local_path
+        article["path"] = self.helper.savepath_parser.get_formatted_relative_path(
+            relative_path
         )
-        article["filename"] = self.helper.savepath_parser.get_filename(
-            article["local_path"]
-        )
-        article["abs_local_path"] = self.helper.savepath_parser.get_abs_path(
-            relative_local_path
-        )
+        article["filename"] = self.helper.savepath_parser.get_filename(article["path"])
+        article["abs_path"] = self.helper.savepath_parser.get_abs_path(relative_path)
         article["modified_date"] = timestamp
         article["download_date"] = timestamp
         article["source_domain"] = source_domain.encode("utf-8")
