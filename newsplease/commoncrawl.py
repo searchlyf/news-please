@@ -29,7 +29,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="fetch commoncrawl.org")
     parser.add_argument("--valid_hosts", nargs="*", help="None means any host")
     parser.add_argument(
-        "--start_date", default="2019-08-01", help="None means any date"
+        "--start_date", default="20190801", help="None means any date"
     )
     parser.add_argument("--end_date")
     parser.add_argument("--data_dir", default="/mnt/d/data", help="warc data dir")

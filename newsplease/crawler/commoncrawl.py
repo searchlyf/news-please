@@ -16,6 +16,7 @@ import urllib
 from functools import partial
 from multiprocessing import Pool
 
+import boto3
 from six.moves import urllib
 from warcio.archiveiterator import ArchiveIterator
 from newsplease import NewsPlease
@@ -46,7 +47,7 @@ class CommonCrawler:
     def _get_filepath(self, article):
         path = os.path.join(self.article_dir, article.source_domain)
         os.makedirs(path, exist_ok=True)
-        return os.path.join(path, article.filename + ".json")
+        return os.path.join(path, article.filename)
 
     def process_article(self, article):
         """
@@ -56,7 +57,9 @@ class CommonCrawler:
         :return:
         """
         with open(self._get_filepath(article), "w") as out:
-            json.dump(article.get_serializable_dict(), out, indent=4, ensure_ascii=False)
+            json.dump(
+                article.get_serializable_dict(), out, indent=4, ensure_ascii=False
+            )
 
     def dump_downloaded_urls(self):
         """
@@ -81,12 +84,13 @@ class CommonCrawler:
             if domain not in self.valid_hosts:
                 return False
         # filter by date. ex: '2019-07-20T05:40:25Z'
-        d = warc_record.rec_headers.get_header("warc-date")
-        return self.start_date <= d and d < self.end_date
+        # d = warc_record.rec_headers.get_header("warc-date")
+        # return self.start_date <= d and d < self.end_date
+        return True
 
     def get_remote_index(self):
         """
-        Gets the index of news crawl files from commoncrawl.org and returns an array of names
+        DeprecationWarning
         :return:
         """
         # cleanup
@@ -102,6 +106,24 @@ class CommonCrawler:
             return []
         logger.info(f" warc list:\n{output}")
         return output.splitlines()
+
+    def get_cc_index(self, prefix="crawl-data/CC-NEWS/2019/"):
+        # https://alexwlchan.net/2019/07/listing-s3-keys/
+        # objs = client.list_objects_v2(Bucket="commoncrawl", Prefix=prefix)
+        # assert(objs['ResponseMetadata']['HTTPStatusCode'] == 200)
+        # objs['MaxKeys'] == 1000
+        # extract date (and serial number):
+        # crawl-data/CC-NEWS/2017/06/CC-NEWS-20170626012725-00020.warc.gz
+        # -> 20170626012725
+        client = boto3.client("s3")
+        ret = []
+        paginator = client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket="commoncrawl", Prefix=prefix):
+            for obj in page["Contents"]:
+                d = obj['Key'].split('.')[0].split("-")[-2]
+                if self.start_date <= d and d < self.end_date:
+                    ret.append(obj['Key'])
+        return ret
 
     def download_warc_file(self, url):
         """
@@ -136,7 +158,10 @@ class CommonCrawler:
 
         with open(path_name, "rb") as stream:
             for record in ArchiveIterator(stream):
-                if record.rec_type != "response":
+                if record.rec_type == "warcinfo":
+                    logger.info(record.raw_stream.read())
+                    continue
+                elif record.rec_type != "response":
                     logger.warning("WARC-Type: is not response")
                     continue
                 total += 1
@@ -181,7 +206,7 @@ class CommonCrawler:
         self.process_warc_file(file_name)
 
     def crawl(self):
-        warc_names = self.get_remote_index()
+        warc_names = self.get_cc_index()
         logger.info("found %i files at commoncrawl.org", len(warc_names))
         extracted_urls = self.get_extracted_warc_urls()
         urls = []
