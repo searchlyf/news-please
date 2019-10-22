@@ -33,5 +33,5 @@ news-please is an open source, easy-to-use news crawler that extracts structured
         for line in open("requirements.txt").readlines()
         if not line.startswith("#")
     ],
-    entry_points={"console_scripts": ["news-please = newsplease.__main__:main"]},
+    entry_points={"console_scripts": ["news-please = newsplease.run:main"]},
 )

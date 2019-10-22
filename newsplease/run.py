@@ -51,7 +51,7 @@ class NewsPleaseLauncher(object):
     config_directory_default_path = "~/freeman/news-please/newsplease/config/"
     config_file_default_name = "config.cfg"
 
-    __single_crawler = False
+    __single_crawler = None
 
     def __init__(
         self,
@@ -238,7 +238,7 @@ class NewsPleaseLauncher(object):
             "%s" % daemonize,
         ]
 
-        logger.debug("Calling Process: %s", call_process)
+        logger.info("Calling Process: %s", call_process)
 
         crawler = Popen(call_process, stderr=None, stdout=None)
         crawler.communicate()
